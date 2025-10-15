@@ -1,15 +1,36 @@
-import { serve } from '@hono/node-server'
-import { Hono } from 'hono'
+import { serve } from "@hono/node-server";
+import { Hono } from "hono";
+import { nanoid } from "nanoid";
 
-const app = new Hono()
+const posts = new Map<string, { id: string; title: string }>();
 
-app.get('/', (c) => {
-  return c.text('Hello Hono!')
-})
+const app = new Hono();
 
-serve({
-  fetch: app.fetch,
-  port: 3000
-}, (info) => {
-  console.log(`Server is running on http://localhost:${info.port}`)
-})
+app.get("/posts", (c) => {
+  return c.json({
+    posts: Array.from(posts.values()),
+  });
+});
+
+app.post("/posts", async (c) => {
+  const id = nanoid();
+  const { title } = await c.req.json();
+
+  if (title === undefined || title.trim() === "") {
+    return c.json({ error: "Title is required" }, 400);
+  }
+
+  posts.set(id, { id, title });
+
+  return c.json({ id, title }, 201);
+});
+
+serve(
+  {
+    fetch: app.fetch,
+    port: 4000,
+  },
+  (info) => {
+    console.log(`Server is running on http://localhost:${info.port}`);
+  }
+);
