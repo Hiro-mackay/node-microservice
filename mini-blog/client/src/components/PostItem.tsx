@@ -64,7 +64,7 @@ export function PostItem({ post }: PostItemProps) {
                 {getInitials(post.title)}
               </AvatarFallback>
             </Avatar>
-            <div>
+            <div className="flex-1">
               <CardTitle className="text-lg leading-tight">
                 {post.title}
               </CardTitle>
@@ -78,6 +78,15 @@ export function PostItem({ post }: PostItemProps) {
       </CardHeader>
 
       <CardContent>
+        {/* 記事内容 */}
+        <div className="mb-6">
+          <div className="prose prose-sm max-w-none">
+            <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
+              {post.content}
+            </p>
+          </div>
+        </div>
+
         <div className="flex items-center justify-between">
           <Button
             variant="outline"

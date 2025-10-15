@@ -3,7 +3,10 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { nanoid } from "nanoid";
 
-const posts = new Map<string, { id: string; title: string; createdAt: Date }>();
+const posts = new Map<
+  string,
+  { id: string; title: string; content: string; createdAt: Date }
+>();
 
 const app = new Hono();
 
@@ -17,15 +20,19 @@ app.get("/posts", (c) => {
 
 app.post("/posts", async (c) => {
   const id = nanoid();
-  const { title } = await c.req.json();
+  const { title, content } = await c.req.json();
 
   if (title === undefined || title.trim() === "") {
     return c.json({ error: "Title is required" }, 400);
   }
 
+  if (content === undefined || content.trim() === "") {
+    return c.json({ error: "Content is required" }, 400);
+  }
+
   const now = new Date();
 
-  posts.set(id, { id, title, createdAt: now });
+  posts.set(id, { id, title, content, createdAt: now });
 
   return c.json(
     {

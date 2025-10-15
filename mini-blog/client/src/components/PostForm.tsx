@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useCreatePost } from "../hooks/usePosts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Card,
   CardContent,
@@ -13,15 +14,20 @@ import { Plus, Loader2 } from "lucide-react";
 
 export function PostForm() {
   const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
   const createPost = useCreatePost();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) return;
+    if (!title.trim() || !content.trim()) return;
 
     try {
-      await createPost.mutateAsync({ title: title.trim() });
+      await createPost.mutateAsync({
+        title: title.trim(),
+        content: content.trim(),
+      });
       setTitle("");
+      setContent("");
     } catch (error) {
       console.error("Failed to create post:", error);
     }
@@ -56,9 +62,28 @@ export function PostForm() {
               className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
             />
           </div>
+
+          <div className="space-y-2">
+            <label
+              htmlFor="content"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              記事内容
+            </label>
+            <Textarea
+              id="content"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="記事の内容を入力してください..."
+              rows={6}
+              disabled={createPost.isPending}
+              className="resize-none transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+            />
+          </div>
+
           <Button
             type="submit"
-            disabled={!title.trim() || createPost.isPending}
+            disabled={!title.trim() || !content.trim() || createPost.isPending}
             className="w-full transition-all duration-200 hover:scale-[1.02]"
             size="lg"
           >

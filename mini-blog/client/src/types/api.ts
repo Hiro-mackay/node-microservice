@@ -1,6 +1,7 @@
 export interface Post {
   id: string;
   title: string;
+  content: string;
   createdAt: Date;
 }
 
@@ -21,6 +22,7 @@ export interface CommentsResponse {
 
 export interface CreatePostRequest {
   title: string;
+  content: string;
 }
 
 export interface CreatePostResponse {
