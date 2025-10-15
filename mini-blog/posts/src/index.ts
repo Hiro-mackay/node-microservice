@@ -2,7 +2,7 @@ import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { nanoid } from "nanoid";
 
-const posts = new Map<string, { id: string; title: string }>();
+const posts = new Map<string, { id: string; title: string; createdAt: Date }>();
 
 const app = new Hono();
 
@@ -20,9 +20,17 @@ app.post("/posts", async (c) => {
     return c.json({ error: "Title is required" }, 400);
   }
 
-  posts.set(id, { id, title });
+  const now = new Date();
 
-  return c.json({ id, title }, 201);
+  posts.set(id, { id, title, createdAt: now });
+
+  return c.json(
+    {
+      status: "ok",
+      postId: id,
+    },
+    201
+  );
 });
 
 serve(

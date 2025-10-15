@@ -1,15 +1,61 @@
-import { serve } from '@hono/node-server'
-import { Hono } from 'hono'
+import { serve } from "@hono/node-server";
+import { Hono } from "hono";
+import { nanoid } from "nanoid";
 
-const app = new Hono()
+const comments = new Map<
+  string,
+  {
+    postId: string;
+    contents: { id: string; content: string; createdAt: Date }[];
+  }
+>();
 
-app.get('/', (c) => {
-  return c.text('Hello Hono!')
-})
+const app = new Hono();
 
-serve({
-  fetch: app.fetch,
-  port: 3000
-}, (info) => {
-  console.log(`Server is running on http://localhost:${info.port}`)
-})
+app.get("/posts/:postId/comments", (c) => {
+  const { postId } = c.req.param();
+  const contents = comments.get(postId)?.contents ?? [];
+  return c.json({
+    postId,
+    comments: contents,
+  });
+});
+
+app.post("/posts/:postId/comments", async (c) => {
+  const id = nanoid();
+  const { content } = await c.req.json();
+  const { postId } = c.req.param();
+
+  if (content === undefined || content.trim() === "") {
+    return c.json({ error: "Content is required" }, 400);
+  }
+
+  const now = new Date();
+
+  const prevComment = comments.get(postId) ?? { postId, contents: [] };
+
+  const newComment = {
+    postId,
+    contents: prevComment.contents.concat({ id, content, createdAt: now }),
+  };
+
+  comments.set(postId, newComment);
+
+  return c.json(
+    {
+      status: "ok",
+      commentId: id,
+    },
+    201
+  );
+});
+
+serve(
+  {
+    fetch: app.fetch,
+    port: 4001,
+  },
+  (info) => {
+    console.log(`Server is running on http://localhost:${info.port}`);
+  }
+);
