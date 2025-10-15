@@ -1,5 +1,6 @@
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
+import { cors } from "hono/cors";
 import { nanoid } from "nanoid";
 
 const comments = new Map<
@@ -11,6 +12,8 @@ const comments = new Map<
 >();
 
 const app = new Hono();
+
+app.use("*", cors());
 
 app.get("/posts/:postId/comments", (c) => {
   const { postId } = c.req.param();
