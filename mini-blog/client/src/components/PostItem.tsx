@@ -1,6 +1,20 @@
 import { useState } from "react";
 import { useComments, useCreateComment } from "../hooks/useComments";
 import type { Post } from "../types/api";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { MessageCircle, Send, Loader2, Calendar, User } from "lucide-react";
 
 interface PostItemProps {
   post: Post;
@@ -36,90 +50,154 @@ export function PostItem({ post }: PostItemProps) {
     });
   };
 
+  const getInitials = (title: string) => {
+    return title.charAt(0).toUpperCase();
+  };
+
   return (
-    <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-      <div className="mb-3">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          {post.title}
-        </h3>
-        <p className="text-sm text-gray-500">
-          投稿日時: {formatDate(post.createdAt)}
-        </p>
-      </div>
+    <Card className="w-full hover:shadow-lg transition-all duration-300 hover:scale-[1.01]">
+      <CardHeader>
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-3">
+            <Avatar className="h-10 w-10">
+              <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
+                {getInitials(post.title)}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <CardTitle className="text-lg leading-tight">
+                {post.title}
+              </CardTitle>
+              <CardDescription className="flex items-center gap-1 mt-1">
+                <Calendar className="h-3 w-3" />
+                {formatDate(post.createdAt)}
+              </CardDescription>
+            </div>
+          </div>
+        </div>
+      </CardHeader>
 
-      <div className="flex items-center justify-between">
-        <button
-          onClick={() => setShowComments(!showComments)}
-          className="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors"
-        >
-          {showComments ? "コメントを隠す" : "コメントを見る"}
-          {commentsData?.comments && commentsData.comments.length > 0 && (
-            <span className="ml-1 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-              {commentsData.comments.length}
-            </span>
-          )}
-        </button>
-      </div>
+      <CardContent>
+        <div className="flex items-center justify-between">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowComments(!showComments)}
+            className="transition-all duration-200 hover:scale-105"
+          >
+            <MessageCircle className="mr-2 h-4 w-4" />
+            {showComments ? "コメントを隠す" : "コメントを見る"}
+            {commentsData?.comments && commentsData.comments.length > 0 && (
+              <Badge variant="secondary" className="ml-2">
+                {commentsData.comments.length}
+              </Badge>
+            )}
+          </Button>
+        </div>
 
-      {showComments && (
-        <div className="mt-4 pt-4 border-t border-gray-200">
-          <div className="mb-4">
-            <form onSubmit={handleCommentSubmit} className="space-y-3">
-              <div>
-                <label
-                  htmlFor={`comment-${post.id}`}
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  コメントを投稿
-                </label>
-                <textarea
+        {showComments && (
+          <div className="mt-6 space-y-6">
+            <Separator />
+
+            {/* コメント投稿フォーム */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <User className="h-4 w-4 text-muted-foreground" />
+                <h4 className="font-medium">コメントを投稿</h4>
+              </div>
+              <form onSubmit={handleCommentSubmit} className="space-y-3">
+                <Textarea
                   id={`comment-${post.id}`}
                   value={commentContent}
                   onChange={(e) => setCommentContent(e.target.value)}
-                  placeholder="コメントを入力してください"
+                  placeholder="あなたのコメントを入力してください..."
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
                   disabled={createComment.isPending}
+                  className="resize-none transition-all duration-200 focus:ring-2 focus:ring-primary/20"
                 />
-              </div>
-              <button
-                type="submit"
-                disabled={!commentContent.trim() || createComment.isPending}
-                className="bg-green-600 text-white py-1 px-3 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
-              >
-                {createComment.isPending ? "投稿中..." : "コメント投稿"}
-              </button>
-              {createComment.isError && (
-                <p className="text-red-600 text-sm">
-                  コメントの投稿に失敗しました。
-                </p>
-              )}
-            </form>
-          </div>
+                <Button
+                  type="submit"
+                  disabled={!commentContent.trim() || createComment.isPending}
+                  size="sm"
+                  className="transition-all duration-200 hover:scale-105"
+                >
+                  {createComment.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      投稿中...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="mr-2 h-4 w-4" />
+                      コメント投稿
+                    </>
+                  )}
+                </Button>
+                {createComment.isError && (
+                  <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md border border-destructive/20">
+                    コメントの投稿に失敗しました。
+                  </div>
+                )}
+              </form>
+            </div>
 
-          <div className="space-y-3">
-            <h4 className="font-medium text-gray-900">コメント</h4>
-            {commentsLoading ? (
-              <div className="text-center py-4">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mx-auto"></div>
-              </div>
-            ) : commentsData?.comments && commentsData.comments.length > 0 ? (
-              commentsData.comments.map((comment) => (
-                <div key={comment.id} className="bg-gray-50 rounded-md p-3">
-                  <p className="text-gray-900 mb-1">{comment.content}</p>
-                  <p className="text-xs text-gray-500">
-                    {formatDate(comment.createdAt)}
+            <Separator />
+
+            {/* コメント一覧 */}
+            <div className="space-y-4">
+              <h4 className="font-medium flex items-center gap-2">
+                <MessageCircle className="h-4 w-4" />
+                コメント
+              </h4>
+              {commentsLoading ? (
+                <div className="space-y-3">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex items-start gap-3">
+                      <Skeleton className="h-8 w-8 rounded-full" />
+                      <div className="space-y-2 flex-1">
+                        <Skeleton className="h-4 w-3/4" />
+                        <Skeleton className="h-3 w-1/2" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : commentsData?.comments && commentsData.comments.length > 0 ? (
+                <div className="space-y-4">
+                  {commentsData.comments.map((comment) => (
+                    <div
+                      key={comment.id}
+                      className="flex items-start gap-3 p-3 bg-muted/30 rounded-lg border"
+                    >
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="bg-secondary text-secondary-foreground text-xs">
+                          <User className="h-3 w-3" />
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 space-y-1">
+                        <p className="text-sm leading-relaxed">
+                          {comment.content}
+                        </p>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          {formatDate(comment.createdAt)}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">まだコメントがありません。</p>
+                  <p className="text-xs">
+                    最初のコメントを投稿してみませんか？
                   </p>
                 </div>
-              ))
-            ) : (
-              <p className="text-gray-500 text-sm">
-                まだコメントがありません。
-              </p>
-            )}
+              )}
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
