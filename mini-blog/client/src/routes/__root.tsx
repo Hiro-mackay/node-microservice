@@ -7,7 +7,7 @@ import { useState } from "react";
 const queryClient = new QueryClient();
 
 export const Route = createRootRoute({
-  component: () => {
+  component: function RootRoute() {
     const [client] = useState(() => queryClient);
 
     return (
