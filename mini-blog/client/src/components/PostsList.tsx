@@ -2,7 +2,7 @@ import { usePosts } from "../hooks/usePosts";
 import { PostItem } from "./PostItem";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, FileText, Loader2 } from "lucide-react";
+import { AlertCircle, FileText } from "lucide-react";
 
 export function PostsList() {
   const { data, isLoading, error } = usePosts();

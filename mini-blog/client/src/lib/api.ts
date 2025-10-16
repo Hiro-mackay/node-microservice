@@ -1,6 +1,5 @@
 import type {
   PostsResponse,
-  CommentsResponse,
   CreatePostRequest,
   CreatePostResponse,
   CreateCommentRequest,
@@ -9,16 +8,9 @@ import type {
 
 const POSTS_API_URL = "http://localhost:4000";
 const COMMENTS_API_URL = "http://localhost:4001";
+const QUERY_API_URL = "http://localhost:4002";
 
 export const postsApi = {
-  async getPosts(): Promise<PostsResponse> {
-    const response = await fetch(`${POSTS_API_URL}/posts`);
-    if (!response.ok) {
-      throw new Error("Failed to fetch posts");
-    }
-    return response.json();
-  },
-
   async createPost(data: CreatePostRequest): Promise<CreatePostResponse> {
     const response = await fetch(`${POSTS_API_URL}/posts`, {
       method: "POST",
@@ -35,16 +27,6 @@ export const postsApi = {
 };
 
 export const commentsApi = {
-  async getComments(postId: string): Promise<CommentsResponse> {
-    const response = await fetch(
-      `${COMMENTS_API_URL}/posts/${postId}/comments`
-    );
-    if (!response.ok) {
-      throw new Error("Failed to fetch comments");
-    }
-    return response.json();
-  },
-
   async createComment(
     postId: string,
     data: CreateCommentRequest
@@ -61,6 +43,16 @@ export const commentsApi = {
     );
     if (!response.ok) {
       throw new Error("Failed to create comment");
+    }
+    return response.json();
+  },
+};
+
+export const queryApi = {
+  async getPosts(): Promise<PostsResponse> {
+    const response = await fetch(`${QUERY_API_URL}/posts`);
+    if (!response.ok) {
+      throw new Error("Failed to fetch posts");
     }
     return response.json();
   },

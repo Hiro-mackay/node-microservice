@@ -3,6 +3,8 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { nanoid } from "nanoid";
 
+const EVENT_BUS_API_URL = "http://localhost:4005";
+
 const comments = new Map<
   string,
   {
@@ -14,6 +16,11 @@ const comments = new Map<
 const app = new Hono();
 
 app.use("*", cors());
+
+app.onError((err, c) => {
+  console.error(err);
+  return c.json({ error: "Internal server error" }, 500);
+});
 
 app.get("/posts/:postId/comments", (c) => {
   const { postId } = c.req.param();
@@ -33,24 +40,43 @@ app.post("/posts/:postId/comments", async (c) => {
     return c.json({ error: "Content is required" }, 400);
   }
 
-  const now = new Date();
-
   const prevComment = comments.get(postId) ?? { postId, contents: [] };
 
-  const newComment = {
-    postId,
-    contents: prevComment.contents.concat({ id, content, createdAt: now }),
+  const event = {
+    type: "CommentCreated",
+    data: {
+      postId,
+      content: {
+        id,
+        content,
+        createdAt: new Date(),
+      },
+    },
   };
 
-  comments.set(postId, newComment);
+  comments.set(postId, {
+    postId,
+    contents: prevComment.contents.concat(event.data.content),
+  });
+
+  await fetch(`${EVENT_BUS_API_URL}/events`, {
+    method: "POST",
+    body: JSON.stringify(event),
+  });
 
   return c.json(
     {
-      status: "ok",
       commentId: id,
     },
     201
   );
+});
+
+app.post("/events", async (c) => {
+  const { type, data } = await c.req.json();
+  console.info("Received event:", type, data);
+
+  return c.json({}, 200);
 });
 
 serve(
@@ -59,6 +85,6 @@ serve(
     port: 4001,
   },
   (info) => {
-    console.log(`Server is running on http://localhost:${info.port}`);
+    console.info(`Server is running on http://localhost:${info.port}`);
   }
 );

@@ -1,13 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PostsList } from "../components/PostsList";
 import { PostForm } from "../components/PostForm";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { FileText, PenTool } from "lucide-react";
 

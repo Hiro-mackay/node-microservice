@@ -57,7 +57,7 @@ export function PostForm() {
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="魅力的なタイトルを入力してください..."
+              placeholder="タイトルを入力してください..."
               disabled={createPost.isPending}
               className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
             />

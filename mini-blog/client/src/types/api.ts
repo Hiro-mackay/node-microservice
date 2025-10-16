@@ -3,6 +3,7 @@ export interface Post {
   title: string;
   content: string;
   createdAt: Date;
+  comments: Comment[];
 }
 
 export interface Comment {
@@ -15,18 +16,12 @@ export interface PostsResponse {
   posts: Post[];
 }
 
-export interface CommentsResponse {
-  postId: string;
-  comments: Comment[];
-}
-
 export interface CreatePostRequest {
   title: string;
   content: string;
 }
 
 export interface CreatePostResponse {
-  status: string;
   postId: string;
 }
 
@@ -35,6 +30,5 @@ export interface CreateCommentRequest {
 }
 
 export interface CreateCommentResponse {
-  status: string;
   commentId: string;
 }

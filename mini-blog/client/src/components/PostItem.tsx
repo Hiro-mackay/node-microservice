@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useComments, useCreateComment } from "../hooks/useComments";
+import { useCreateComment } from "../hooks/useComments";
 import type { Post } from "../types/api";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,7 +13,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
 import { MessageCircle, Send, Loader2, Calendar, User } from "lucide-react";
 
 interface PostItemProps {
@@ -23,9 +22,6 @@ interface PostItemProps {
 export function PostItem({ post }: PostItemProps) {
   const [showComments, setShowComments] = useState(false);
   const [commentContent, setCommentContent] = useState("");
-  const { data: commentsData, isLoading: commentsLoading } = useComments(
-    post.id
-  );
   const createComment = useCreateComment(post.id);
 
   const handleCommentSubmit = async (e: React.FormEvent) => {
@@ -96,9 +92,9 @@ export function PostItem({ post }: PostItemProps) {
           >
             <MessageCircle className="mr-2 h-4 w-4" />
             {showComments ? "コメントを隠す" : "コメントを見る"}
-            {commentsData?.comments && commentsData.comments.length > 0 && (
+            {post.comments && post.comments.length > 0 && (
               <Badge variant="secondary" className="ml-2">
-                {commentsData.comments.length}
+                {post.comments.length}
               </Badge>
             )}
           </Button>
@@ -158,21 +154,19 @@ export function PostItem({ post }: PostItemProps) {
                 <MessageCircle className="h-4 w-4" />
                 コメント
               </h4>
-              {commentsLoading ? (
+              {post.comments && post.comments.length === 0 ? (
                 <div className="space-y-3">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="flex items-start gap-3">
-                      <Skeleton className="h-8 w-8 rounded-full" />
-                      <div className="space-y-2 flex-1">
-                        <Skeleton className="h-4 w-3/4" />
-                        <Skeleton className="h-3 w-1/2" />
-                      </div>
-                    </div>
-                  ))}
+                  <div className="text-center py-8 text-muted-foreground">
+                    <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">まだコメントがありません。</p>
+                    <p className="text-xs">
+                      最初のコメントを投稿してみませんか？
+                    </p>
+                  </div>
                 </div>
-              ) : commentsData?.comments && commentsData.comments.length > 0 ? (
+              ) : (
                 <div className="space-y-4">
-                  {commentsData.comments.map((comment) => (
+                  {post.comments.map((comment) => (
                     <div
                       key={comment.id}
                       className="flex items-start gap-3 p-3 bg-muted/30 rounded-lg border"
@@ -193,14 +187,6 @@ export function PostItem({ post }: PostItemProps) {
                       </div>
                     </div>
                   ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">まだコメントがありません。</p>
-                  <p className="text-xs">
-                    最初のコメントを投稿してみませんか？
-                  </p>
                 </div>
               )}
             </div>

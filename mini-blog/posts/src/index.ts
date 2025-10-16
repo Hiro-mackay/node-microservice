@@ -3,6 +3,8 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { nanoid } from "nanoid";
 
+const EVENT_BUS_API_URL = "http://localhost:4005";
+
 const posts = new Map<
   string,
   { id: string; title: string; content: string; createdAt: Date }
@@ -11,6 +13,11 @@ const posts = new Map<
 const app = new Hono();
 
 app.use("*", cors());
+
+app.onError((err, c) => {
+  console.error(err);
+  return c.json({ error: "Internal server error" }, 500);
+});
 
 app.get("/posts", (c) => {
   return c.json({
@@ -30,17 +37,36 @@ app.post("/posts", async (c) => {
     return c.json({ error: "Content is required" }, 400);
   }
 
-  const now = new Date();
+  const event = {
+    type: "PostCreated",
+    data: {
+      id,
+      title,
+      content,
+      createdAt: new Date(),
+    },
+  };
 
-  posts.set(id, { id, title, content, createdAt: now });
+  posts.set(id, event.data);
+
+  await fetch(`${EVENT_BUS_API_URL}/events`, {
+    method: "POST",
+    body: JSON.stringify(event),
+  });
 
   return c.json(
     {
-      status: "ok",
       postId: id,
     },
     201
   );
+});
+
+app.post("/events", async (c) => {
+  const { type, data } = await c.req.json();
+  console.info("Received event:", type, data);
+
+  return c.json({}, 200);
 });
 
 serve(
@@ -49,6 +75,6 @@ serve(
     port: 4000,
   },
   (info) => {
-    console.log(`Server is running on http://localhost:${info.port}`);
+    console.info(`Server is running on http://localhost:${info.port}`);
   }
 );
