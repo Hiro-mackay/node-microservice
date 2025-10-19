@@ -5,10 +5,27 @@ import { nanoid } from "nanoid";
 
 const EVENT_BUS_API_URL = "http://localhost:4005";
 
-const posts = new Map<
-  string,
-  { id: string; title: string; content: string; createdAt: Date }
->();
+/**
+ * Models
+ */
+type Post = {
+  id: string;
+  title: string;
+  content: string;
+  createdAt: Date;
+};
+
+const posts = new Map<string, Post>();
+
+/**
+ * Events
+ */
+const PostCreatedEventName = "PostCreated" as const;
+
+type PostCreatedEvent = {
+  type: typeof PostCreatedEventName;
+  data: Post;
+};
 
 const app = new Hono();
 
@@ -37,8 +54,8 @@ app.post("/posts", async (c) => {
     return c.json({ error: "Content is required" }, 400);
   }
 
-  const event = {
-    type: "PostCreated",
+  const event: PostCreatedEvent = {
+    type: PostCreatedEventName,
     data: {
       id,
       title,

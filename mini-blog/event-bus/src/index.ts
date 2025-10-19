@@ -14,24 +14,36 @@ app.onError((err, c) => {
 const POSTS_API_URL = "http://localhost:4000";
 const COMMENTS_API_URL = "http://localhost:4001";
 const QUERY_API_URL = "http://localhost:4002";
+const MODERATION_API_URL = "http://localhost:4003";
+
+const sendEventToService = async (url: string, body: any) => {
+  await fetch(url, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+};
 
 app.post("/events", async (c) => {
   const body = await c.req.json();
 
-  await Promise.all([
-    fetch(`${POSTS_API_URL}/events`, {
-      method: "POST",
-      body: JSON.stringify(body),
-    }),
-    fetch(`${COMMENTS_API_URL}/events`, {
-      method: "POST",
-      body: JSON.stringify(body),
-    }),
-    fetch(`${QUERY_API_URL}/events`, {
-      method: "POST",
-      body: JSON.stringify(body),
-    }),
-  ]);
+  Promise.allSettled([
+    sendEventToService(`${POSTS_API_URL}/events`, body),
+    sendEventToService(`${COMMENTS_API_URL}/events`, body),
+    sendEventToService(`${QUERY_API_URL}/events`, body),
+    sendEventToService(`${MODERATION_API_URL}/events`, body),
+  ]).then((results) => {
+    const rejectedResults = results.filter(
+      (result) => result.status === "rejected"
+    );
+    if (rejectedResults.length > 0) {
+      console.error(
+        "Error sending event to services:",
+        rejectedResults.map((result) => result.reason)
+      );
+    } else {
+      console.info("Event sent to all services successfully");
+    }
+  });
 
   return c.json({}, 200);
 });

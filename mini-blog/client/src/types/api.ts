@@ -10,6 +10,8 @@ export interface Comment {
   id: string;
   content: string;
   createdAt: Date;
+  postId: string;
+  status: "pending" | "approved" | "rejected";
 }
 
 export interface PostsResponse {

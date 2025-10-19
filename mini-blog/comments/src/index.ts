@@ -5,13 +5,48 @@ import { nanoid } from "nanoid";
 
 const EVENT_BUS_API_URL = "http://localhost:4005";
 
-const comments = new Map<
-  string,
-  {
-    postId: string;
-    contents: { id: string; content: string; createdAt: Date }[];
-  }
->();
+/**
+ * Models
+ */
+
+type Status = "pending" | "approved" | "rejected";
+
+type BaseCooment = {
+  id: string;
+  content: string;
+  postId: string;
+  createdAt: Date;
+  status: Extract<Status, "pending">;
+};
+
+type CreatedComment = BaseCooment & {
+  status: Extract<Status, "pending">;
+};
+
+type ModeratedComment = BaseCooment & {
+  status: Exclude<Status, "pending">;
+};
+
+type Comment = CreatedComment | ModeratedComment;
+
+const comments = new Map<string, Comment>();
+
+/**
+ * Events
+ */
+const CommentCreatedEventName = "CommentCreated" as const;
+const CommentUpdatedEventName = "CommentUpdated" as const;
+const CommentModeratedEventName = "CommentModerated" as const;
+
+type CommentCreatedEvent = {
+  type: typeof CommentCreatedEventName;
+  data: CreatedComment;
+};
+
+type CommentUpdatedEvent = {
+  type: typeof CommentUpdatedEventName;
+  data: Comment;
+};
 
 const app = new Hono();
 
@@ -22,12 +57,20 @@ app.onError((err, c) => {
   return c.json({ error: "Internal server error" }, 500);
 });
 
+function getCommentsByPostId(postId: string): Comment[] {
+  return Array.from(comments.values()).filter(
+    (comment) => comment.postId === postId
+  );
+}
+
 app.get("/posts/:postId/comments", (c) => {
   const { postId } = c.req.param();
-  const contents = comments.get(postId)?.contents ?? [];
+
+  const postComments = getCommentsByPostId(postId);
+
   return c.json({
     postId,
-    comments: contents,
+    comments: postComments,
   });
 });
 
@@ -40,24 +83,18 @@ app.post("/posts/:postId/comments", async (c) => {
     return c.json({ error: "Content is required" }, 400);
   }
 
-  const prevComment = comments.get(postId) ?? { postId, contents: [] };
-
-  const event = {
-    type: "CommentCreated",
+  const event: CommentCreatedEvent = {
+    type: CommentCreatedEventName,
     data: {
+      id,
+      content,
       postId,
-      content: {
-        id,
-        content,
-        createdAt: new Date(),
-      },
+      createdAt: new Date(),
+      status: "pending",
     },
   };
 
-  comments.set(postId, {
-    postId,
-    contents: prevComment.contents.concat(event.data.content),
-  });
+  comments.set(id, event.data);
 
   await fetch(`${EVENT_BUS_API_URL}/events`, {
     method: "POST",
@@ -74,7 +111,24 @@ app.post("/posts/:postId/comments", async (c) => {
 
 app.post("/events", async (c) => {
   const { type, data } = await c.req.json();
+
   console.info("Received event:", type, data);
+
+  switch (type) {
+    case CommentModeratedEventName:
+      comments.set(data.id, data);
+
+      const event: CommentUpdatedEvent = {
+        type: CommentUpdatedEventName,
+        data: data,
+      };
+
+      await fetch(`${EVENT_BUS_API_URL}/events`, {
+        method: "POST",
+        body: JSON.stringify(event),
+      });
+      break;
+  }
 
   return c.json({}, 200);
 });
