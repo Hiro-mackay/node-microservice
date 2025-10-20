@@ -2,6 +2,13 @@ import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 
+type Event = {
+  type: string;
+  data: object;
+};
+
+const events: Event[] = [];
+
 const app = new Hono();
 
 app.use("*", cors());
@@ -16,15 +23,17 @@ const COMMENTS_API_URL = "http://localhost:4001";
 const QUERY_API_URL = "http://localhost:4002";
 const MODERATION_API_URL = "http://localhost:4003";
 
-const sendEventToService = async (url: string, body: any) => {
+async function sendEventToService(url: string, body: any) {
   await fetch(url, {
     method: "POST",
     body: JSON.stringify(body),
   });
-};
+}
 
 app.post("/events", async (c) => {
   const body = await c.req.json();
+
+  events.push(body);
 
   Promise.allSettled([
     sendEventToService(`${POSTS_API_URL}/events`, body),
@@ -46,6 +55,10 @@ app.post("/events", async (c) => {
   });
 
   return c.json({}, 200);
+});
+
+app.get("/events", (c) => {
+  return c.json({ events }, 200);
 });
 
 serve(

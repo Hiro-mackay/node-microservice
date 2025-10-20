@@ -45,6 +45,21 @@ const PostCreatedEventName = "PostCreated" as const;
 const CommentCreatedEventName = "CommentCreated" as const;
 const CommentUpdatedEventName = "CommentUpdated" as const;
 
+type PostCreatedEvent = {
+  type: typeof PostCreatedEventName;
+  data: Post;
+};
+
+type CommentCreatedEvent = {
+  type: typeof CommentCreatedEventName;
+  data: Comment;
+};
+
+type CommentUpdatedEvent = {
+  type: typeof CommentUpdatedEventName;
+  data: Comment;
+};
+
 const app = new Hono();
 
 app.use("*", cors());
@@ -66,6 +81,21 @@ function maskCommentByStatus(comment: Comment): Comment {
     ...comment,
     content: maskedContent,
   };
+}
+
+function handleEvent(
+  event: PostCreatedEvent | CommentCreatedEvent | CommentUpdatedEvent
+) {
+  console.info("Processing event:", event.type, event.data);
+  switch (event.type) {
+    case PostCreatedEventName:
+      posts.set(event.data.id, event.data);
+      break;
+    case CommentCreatedEventName:
+    case CommentUpdatedEventName:
+      comments.set(event.data.id, event.data);
+      break;
+  }
 }
 
 const getCommentsByPostId = (postId: string): Comment[] => {
@@ -97,19 +127,7 @@ app.post("/events", async (c) => {
   const { type, data } = await c.req.json();
   console.info("Received event:", type, data);
 
-  switch (type) {
-    case PostCreatedEventName:
-      posts.set(data.id, data);
-      break;
-
-    case CommentCreatedEventName:
-      comments.set(data.id, data);
-      break;
-
-    case CommentUpdatedEventName:
-      comments.set(data.id, data);
-      break;
-  }
+  handleEvent({ type, data });
 
   return c.json({}, 200);
 });
@@ -119,7 +137,15 @@ serve(
     fetch: app.fetch,
     port: 4002,
   },
-  (info) => {
+  async (info) => {
     console.info(`Server is running on http://localhost:${info.port}`);
+
+    const res = await fetch(`${EVENT_BUS_API_URL}/events`);
+    const { events } = await res.json();
+
+    for (const event of events) {
+      handleEvent(event);
+    }
+    console.info("Events processed successfully");
   }
 );
