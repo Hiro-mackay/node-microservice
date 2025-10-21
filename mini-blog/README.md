@@ -1,90 +1,104 @@
-# マイクロサービス ブログアプリケーション
+# Microservices Blog Application
 
-このプロジェクトは、Docker Compose を使用してマイクロサービスアーキテクチャで構築されたブログアプリケーションです。
+A blog application built with microservices architecture using Docker Compose.
 
-## 🏗️ アーキテクチャ
+## Architecture
 
-- **Posts Service** (ポート 3000): 投稿の作成・取得
-- **Event Bus** (ポート 4005): イベントバス
-- **Query Service** (ポート 4002): データクエリ
-- **Comments Service** (ポート 4001): コメント管理
-- **Moderation Service** (ポート 4003): コンテンツモデレーション
+- **Posts Service** (Port 4000): Create and retrieve posts
+- **Event Bus** (Port 4005): Event distribution
+- **Query Service** (Port 4002): Data aggregation and queries
+- **Comments Service** (Port 4001): Comment management
+- **Moderation Service** (Port 4003): Content moderation
 
-## 🚀 クイックスタート
+## Quick Start
 
-### 1. 全サービスを起動
+### Start all services
 
 ```bash
 ./start.sh
 ```
 
-### 2. サービスを停止
+### Stop all services
 
 ```bash
 ./stop.sh
 ```
 
-### 3. 個別のサービス管理
+### Individual service management
 
 ```bash
-# 特定のサービスのみ起動
+# Start specific services
 docker-compose up -d posts event-bus
 
-# ログを確認
+# View logs
 docker-compose logs -f posts
 
-# サービス状況を確認
+# Check service status
 docker-compose ps
 ```
 
-## 📡 API エンドポイント
+## API Endpoints
 
-### Posts Service (http://localhost:3000)
+### Posts Service (http://localhost:4000)
 
-- `GET /posts` - 全投稿を取得
-- `POST /posts` - 新規投稿を作成
-- `POST /events` - イベントを受信
+- `GET /posts` - Get all posts
+- `POST /posts` - Create new post
+- `POST /events` - Receive events
 
 ### Event Bus (http://localhost:4005)
 
-- `POST /events` - イベントを送信
-- `GET /events` - イベント履歴を取得
+- `POST /events` - Send event
+- `GET /events` - Get event history
 
-## 🔧 開発
+### Query Service (http://localhost:4002)
 
-### 個別サービスの開発
+- `GET /posts` - Get posts with comments
+- `POST /events` - Receive events
+
+### Comments Service (http://localhost:4001)
+
+- `GET /posts/:postId/comments` - Get comments for a post
+- `POST /posts/:postId/comments` - Create comment
+- `POST /events` - Receive events
+
+### Moderation Service (http://localhost:4003)
+
+- `POST /events` - Receive events for moderation
+
+## Development
+
+### Run individual service
 
 ```bash
-# postsサービスのみ起動
 cd posts
 npm run dev
 ```
 
-### Docker イメージの再ビルド
+### Rebuild Docker images
 
 ```bash
 docker-compose build --no-cache
 ```
 
-## 📝 ログとデバッグ
+## Logs and Debugging
 
 ```bash
-# 全サービスのログ
+# All services logs
 docker-compose logs -f
 
-# 特定サービスのログ
+# Specific service logs
 docker-compose logs -f posts
 
-# リアルタイムログ
+# Real-time logs
 docker-compose logs -f --tail=100
 ```
 
-## 🧹 クリーンアップ
+## Cleanup
 
 ```bash
-# コンテナとボリュームを削除
+# Stop and remove containers
 docker-compose down -v
 
-# イメージも削除
+# Remove images as well
 docker-compose down --rmi all
 ```
