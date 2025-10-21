@@ -2,7 +2,7 @@ import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 
-const EVENT_BUS_API_URL = "http://localhost:4005";
+const EVENT_BUS_API_URL = process.env.EVENT_BUS_API_URL;
 
 type ModeratedComment = {
   id: string;
@@ -62,7 +62,7 @@ app.post("/events", async (c) => {
 serve(
   {
     fetch: app.fetch,
-    port: 4003,
+    port: 3000,
   },
   (info) => {
     console.info(`Server is running on http://localhost:${info.port}`);

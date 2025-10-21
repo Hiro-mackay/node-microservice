@@ -18,10 +18,10 @@ app.onError((err, c) => {
   return c.json({ error: "Internal server error" }, 500);
 });
 
-const POSTS_API_URL = "http://localhost:4000";
-const COMMENTS_API_URL = "http://localhost:4001";
-const QUERY_API_URL = "http://localhost:4002";
-const MODERATION_API_URL = "http://localhost:4003";
+const POSTS_API_URL = process.env.POSTS_API_URL;
+const COMMENTS_API_URL = process.env.COMMENTS_API_URL;
+const QUERY_API_URL = process.env.QUERY_API_URL;
+const MODERATION_API_URL = process.env.MODERATION_API_URL;
 
 async function sendEventToService(url: string, body: any) {
   await fetch(url, {
@@ -64,7 +64,7 @@ app.get("/events", (c) => {
 serve(
   {
     fetch: app.fetch,
-    port: 4005,
+    port: 3000,
   },
   (info) => {
     console.info(`Server is running on http://localhost:${info.port}`);

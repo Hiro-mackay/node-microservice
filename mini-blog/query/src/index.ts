@@ -2,7 +2,7 @@ import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 
-const EVENT_BUS_API_URL = "http://localhost:4005";
+const EVENT_BUS_API_URL = process.env.EVENT_BUS_API_URL;
 
 /**
  * Models
@@ -135,17 +135,24 @@ app.post("/events", async (c) => {
 serve(
   {
     fetch: app.fetch,
-    port: 4002,
+    port: 3000,
   },
   async (info) => {
     console.info(`Server is running on http://localhost:${info.port}`);
 
-    const res = await fetch(`${EVENT_BUS_API_URL}/events`);
-    const { events } = await res.json();
+    // Wait a bit for event-bus to be ready
+    setTimeout(async () => {
+      try {
+        const res = await fetch(`${EVENT_BUS_API_URL}/events`);
+        const { events } = await res.json();
 
-    for (const event of events) {
-      handleEvent(event);
-    }
-    console.info("Events processed successfully");
+        for (const event of events) {
+          handleEvent(event);
+        }
+        console.info("Events processed successfully");
+      } catch (error) {
+        console.warn("Could not fetch events from event-bus:", error);
+      }
+    }, 2000);
   }
 );

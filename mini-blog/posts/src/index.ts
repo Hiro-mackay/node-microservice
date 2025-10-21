@@ -3,7 +3,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { nanoid } from "nanoid";
 
-const EVENT_BUS_API_URL = "http://localhost:4005";
+const EVENT_BUS_API_URL = process.env.EVENT_BUS_API_URL;
 
 /**
  * Models
@@ -66,10 +66,14 @@ app.post("/posts", async (c) => {
 
   posts.set(id, event.data);
 
-  await fetch(`${EVENT_BUS_API_URL}/events`, {
-    method: "POST",
-    body: JSON.stringify(event),
-  });
+  try {
+    await fetch(`${EVENT_BUS_API_URL}/events`, {
+      method: "POST",
+      body: JSON.stringify(event),
+    });
+  } catch (error) {
+    console.warn("Could not send event to event-bus:", error);
+  }
 
   return c.json(
     {
@@ -89,7 +93,7 @@ app.post("/events", async (c) => {
 serve(
   {
     fetch: app.fetch,
-    port: 4000,
+    port: 3000,
   },
   (info) => {
     console.info(`Server is running on http://localhost:${info.port}`);

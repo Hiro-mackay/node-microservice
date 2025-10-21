@@ -1,0 +1,66 @@
+services:
+  posts:
+    build:
+      context: ./posts
+      dockerfile: Dockerfile
+    ports:
+      - "4000:3000"
+    environment:
+      - EVENT_BUS_API_URL=http://event-bus:3000
+    depends_on:
+      - event-bus
+    networks:
+      - microservices
+  event-bus:
+    build:
+      context: ./event-bus
+      dockerfile: Dockerfile
+    ports:
+      - "4005:3000"
+    environment:
+      - POSTS_API_URL=http://posts:3000
+      - COMMENTS_API_URL=http://comments:3000
+      - QUERY_API_URL=http://query:3000
+      - MODERATION_API_URL=http://moderation:3000
+    networks:
+      - microservices
+  query:
+    build:
+      context: ./query
+      dockerfile: Dockerfile
+    ports:
+      - "4002:3000"
+    environment:
+      - EVENT_BUS_API_URL=http://event-bus:3000
+    depends_on:
+      - event-bus
+    networks:
+      - microservices
+  comments:
+    build:
+      context: ./comments
+      dockerfile: Dockerfile
+    ports:
+      - "4001:3000"
+    environment:
+      - EVENT_BUS_API_URL=http://event-bus:3000
+    depends_on:
+      - event-bus
+    networks:
+      - microservices
+  moderation:
+    build:
+      context: ./moderation
+      dockerfile: Dockerfile
+    ports:
+      - "4003:3000"
+    environment:
+      - EVENT_BUS_API_URL=http://event-bus:3000
+    depends_on:
+      - event-bus
+    networks:
+      - microservices
+
+networks:
+  microservices:
+    driver: bridge

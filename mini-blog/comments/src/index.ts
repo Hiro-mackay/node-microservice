@@ -3,7 +3,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { nanoid } from "nanoid";
 
-const EVENT_BUS_API_URL = "http://localhost:4005";
+const EVENT_BUS_API_URL = process.env.EVENT_BUS_API_URL;
 
 /**
  * Models
@@ -136,7 +136,7 @@ app.post("/events", async (c) => {
 serve(
   {
     fetch: app.fetch,
-    port: 4001,
+    port: 3000,
   },
   (info) => {
     console.info(`Server is running on http://localhost:${info.port}`);
