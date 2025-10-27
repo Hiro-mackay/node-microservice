@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: posts-deploy
+  name: comments-deploy
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: posts
+      app: comments
   template:
     metadata:
       labels:
-        app: posts
+        app: comments
     spec:
       containers:
-        - name: posts
-          image: mini-blog-posts
+        - name: comments
+          image: mini-blog-comments
           env:
             - name: EVENT_BUS_API_URL
               value: "http://event-bus-srv:3000"
@@ -22,12 +22,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: posts-srv
+  name: comments-srv
 spec:
   selector:
-    app: posts
+    app: comments
   ports:
-    - name: posts
+    - name: comments
       protocol: TCP
       port: 3000
       targetPort: 3000

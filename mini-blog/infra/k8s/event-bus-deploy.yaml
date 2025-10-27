@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: event-bus-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: event-bus
+  template:
+    metadata:
+      labels:
+        app: event-bus
+    spec:
+      containers:
+        - name: event-bus
+          image: mini-blog-event-bus
+          env:
+            - name: POSTS_API_URL
+              value: "http://posts-srv:3000"
+            - name: COMMENTS_API_URL
+              value: "http://comments-srv:3000"
+            - name: QUERY_API_URL
+              value: "http://query-srv:3000"
+            - name: MODERATION_API_URL
+              value: "http://moderation-srv:3000"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: event-bus-srv
+spec:
+  selector:
+    app: event-bus
+  ports:
+    - name: event-bus
+      protocol: TCP
+      port: 3000
+      targetPort: 3000
